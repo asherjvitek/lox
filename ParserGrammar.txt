@@ -1,0 +1,25 @@
+program        → declaration* EOF ;
+declaration    >  varDecl | statement ;
+ifStmt         > "if" "(" expression ")" statement ( "else" statement )? ;
+varDecl        > "var" IDENTIFIER ( "=" expression )? ( "," IDENTIFIER ( "=" expression )? )* ";" ;
+statement      → ifStmt | exprStmt | printStmt | block ;
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
+block          > "{" declaration "}" ;
+
+expression     → ternery ;
+ternery        > assignment ( "?" expression ":" expression )? ;
+assignment     > IDENTIFIER "=" assignment | logic_or ;
+logic_or       > logic_and ( "or" logic_and )* ;
+logic_and       > equality ( "and" equality )* ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
+primary        → NUMBER | STRING 
+               | "true" | "false" | "nil"
+               | "(" expression ")"
+               | IDENTIFIER ;
+
