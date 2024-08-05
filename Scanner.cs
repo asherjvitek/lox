@@ -22,6 +22,8 @@ public class Scanner
         { "or", OR },
         { "print", PRINT },
         { "return", RETURN },
+        { "break", BREAK },
+        { "continue", CONTINUE },
         { "super", SUPER },
         { "this", THIS },
         { "true", TRUE },

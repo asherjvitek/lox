@@ -10,6 +10,7 @@ public abstract class Expr
         T? VisitVariableExpr(Variable expr);
         T? VisitAssignExpr(Assign expr);
         T? VisitTerneryExpr(Ternary expr);
+        T? VisitLogicalExpr(Logical expr);
     }
 
     public class Binary : Expr
@@ -26,6 +27,23 @@ public abstract class Expr
         }
 
         public override T Accept<T>(Visitor<T> visitor) => visitor.VisitBinaryExpr(this);
+
+    }
+
+public class Logical : Expr
+    {
+        public readonly Expr Left;
+        public readonly Token Oper;
+        public readonly Expr Right;
+
+        public Logical(Expr left, Token oper, Expr right)
+        {
+            this.Left = left;
+            this.Oper = oper;
+            this.Right = right;
+        }
+
+        public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitLogicalExpr(this);
 
     }
 

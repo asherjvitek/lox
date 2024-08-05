@@ -180,6 +180,24 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         return value;
     }
 
+    public object? VisitLogicalExpr(Expr.Logical expr)
+    {
+        var left = Evaluate(expr.Left);
+
+        if (expr.Oper.Type == TokenType.OR)
+        {
+            if (IsTruthy(left))
+                return left;
+        }
+        else
+        {
+            if (!IsTruthy(left))
+                return left;
+        }
+
+        return Evaluate(expr.Right);
+    }
+
     public void VisitExpressionStmt(Stmt.Expression stmt)
     {
         Evaluate(stmt.Expr);
@@ -243,4 +261,61 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
             throw new RuntimeError(oper, "Operand must be a number.");
     }
 
+    public void VisitWhileStmt(Stmt.While stmt)
+    {
+        while (IsTruthy(Evaluate(stmt.Condition)))
+        {
+            try
+            {
+                Execute(stmt.Body);
+            }
+            catch (Break)
+            {
+                break;
+            }
+            catch (Continue)
+            {
+                continue;
+            }
+        }
+    }
+
+    public void VisitForStmt(Stmt.For stmt)
+    {
+        if (stmt.Initializer != null)
+            Execute(stmt.Initializer);
+
+        while (IsTruthy(Evaluate(stmt.Condition)))
+        {
+            try
+            {
+                Execute(stmt.Body);
+            }
+            catch (Break)
+            {
+                break;
+            }
+            catch (Continue)
+            {
+                if (stmt.Incrementer != null)
+                    Evaluate(stmt.Incrementer);
+
+                continue;
+            }
+
+            if (stmt.Incrementer != null)
+                Evaluate(stmt.Incrementer);
+        }
+
+    }
+
+    public void VisitBreakStmt(Stmt.Break stmt)
+    {
+        throw new Break();
+    }
+
+    public void VisitContinueStmt(Stmt.Continue stmt)
+    {
+        throw new Continue();
+    }
 }

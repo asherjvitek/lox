@@ -4,6 +4,7 @@ public class Parser
 {
     private List<Token> tokens;
     private int current = 0;
+    private int loopDepth = 0;
 
     public Parser(List<Token> tokens)
     {
@@ -67,8 +68,12 @@ public class Parser
 
     private Stmt Statement()
     {
+        if (Match(FOR)) return ForStatement();
+        if (Match(WHILE)) return WhileStatement();
         if (Match(IF)) return IfStatement();
         if (Match(PRINT)) return PrintStatement();
+        if (Match(BREAK)) return BreakStatement();
+        if (Match(CONTINUE)) return ContinueStatement();
 
         if (Match(LEFT_BRACE))
         {
@@ -78,13 +83,30 @@ public class Parser
         return ExpressionStatement();
     }
 
+    private Stmt WhileStatement()
+    {
+        loopDepth++;
+
+        Consume(LEFT_PAREN, "Expect '(' after 'while'.");
+
+        var condition = Expression();
+
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
+
+        var statement = Statement();
+
+        loopDepth--;
+
+        return new Stmt.While(condition, statement);
+    }
+
     private Stmt IfStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after if.");
 
         var condition = Expression();
 
-        Consume(RIGHT_PAREN, "Expect ')' after if.");
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
 
         var then = Statement();
         Stmt? elseBranch = null;
@@ -97,6 +119,50 @@ public class Parser
         return new Stmt.If(condition, then, elseBranch);
     }
 
+    private Stmt ForStatement()
+    {
+        loopDepth++;
+
+        Consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt? initializer = null;
+        if (Match(SEMICOLON))
+        {
+
+        }
+        else if (Match(VAR))
+        {
+            initializer = VarDeclaration();
+            Consume(SEMICOLON, "Expect ';' after value.");
+        }
+        else
+        {
+            initializer = ExpressionStatement();
+        }
+
+        Expr? condition = null;
+        if (!Check(SEMICOLON))
+        {
+            condition = Expression();
+        }
+
+        Consume(SEMICOLON, "Expect ';' after expression");
+
+        Expr? increment = null;
+        if (!Check(RIGHT_PAREN))
+        {
+            increment = Expression();
+        }
+
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
+
+        var body = Statement();
+
+        loopDepth--;
+
+        return new Stmt.For(initializer, condition ?? new Expr.Literal(true), body, increment);
+    }
+
     private Stmt PrintStatement()
     {
         var value = Expression();
@@ -104,6 +170,30 @@ public class Parser
         Consume(SEMICOLON, "Expect ';' after value.");
 
         return new Stmt.Print(value);
+    }
+
+    private Stmt BreakStatement()
+    {
+        if (loopDepth == 0)
+            throw Error(Previous(), "Expect 'break' to be inside loop");
+
+        var continueStmt = new Stmt.Break();
+
+        Consume(SEMICOLON, "Expect ';' after 'break'.");
+
+        return continueStmt;
+    }
+
+    private Stmt ContinueStatement()
+    {
+        if (loopDepth == 0)
+            throw Error(Previous(), "Expect 'continue' to be inside loop");
+
+        var breakStmt = new Stmt.Continue();
+
+        Consume(SEMICOLON, "Expect ';' after 'continue'.");
+
+        return breakStmt;
     }
 
     private List<Stmt> Block()
@@ -160,7 +250,7 @@ public class Parser
 
     private Expr Assignment()
     {
-        var expr = Equality();
+        var expr = Or();
 
         if (Match(EQUAL))
         {
@@ -178,11 +268,42 @@ public class Parser
         return expr;
     }
 
+    private Expr Or()
+    {
+        var expr = And();
+
+        while (Match(OR))
+        {
+            var or = Previous();
+            var right = And();
+
+            return new Expr.Logical(expr, or, right);
+        }
+
+        return expr;
+    }
+
+    private Expr And()
+    {
+        var expr = Equality();
+
+        while (Match(AND))
+        {
+            var or = Previous();
+            var right = Equality();
+
+            return new Expr.Logical(expr, or, right);
+        }
+
+        return expr;
+    }
+
     private Expr Equality()
     {
         var expr = Comparison();
 
-        while (Match(BANG_EQUAL, EQUAL_EQUAL, OR))
+        //this had OR in the Match and I do not think that was right. Did I make that mistake?
+        while (Match(BANG_EQUAL, EQUAL_EQUAL))
         {
             var oper = Previous();
             var right = Comparison();

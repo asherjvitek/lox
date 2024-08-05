@@ -8,6 +8,10 @@ public abstract class Stmt
         void VisitVarStmt(Var stmt);
         void VisitBlockStmt(Block stmt);
         void VisitIfStmt(If stmt);
+        void VisitWhileStmt(While stmt);
+        void VisitBreakStmt(Break stmt);
+        void VisitContinueStmt(Continue stmt);
+        void VisitForStmt(For stmt);
     }
 
     public class Expression : Stmt
@@ -20,6 +24,40 @@ public abstract class Stmt
         }
 
         public override void Accept(Visitor visitor) => visitor.VisitExpressionStmt(this);
+
+    }
+
+    public class While : Stmt
+    {
+        public readonly Expr Condition;
+        public readonly Stmt Body;
+
+        public While(Expr condition, Stmt body)
+        {
+            Condition = condition;
+            Body = body;
+        }
+
+        public override void Accept(Visitor visitor) => visitor.VisitWhileStmt(this);
+
+    }
+
+    public class For : Stmt
+    {
+        public readonly Stmt? Initializer;
+        public readonly Expr Condition;
+        public readonly Stmt Body;
+        public readonly Expr? Incrementer;
+
+        public For(Stmt? initializer, Expr condition, Stmt body, Expr? incrementer)
+        {
+            Initializer = initializer;
+            Condition = condition;
+            Body = body;
+            Incrementer = incrementer;
+        }
+
+        public override void Accept(Visitor visitor) => visitor.VisitForStmt(this);
 
     }
 
@@ -79,6 +117,16 @@ public abstract class Stmt
 
         public override void Accept(Visitor visitor) => visitor.VisitBlockStmt(this);
 
+    }
+
+    public class Break : Stmt
+    {
+        public override void Accept(Visitor visitor) => visitor.VisitBreakStmt(this);
+    }
+
+    public class Continue : Stmt
+    {
+        public override void Accept(Visitor visitor) => visitor.VisitContinueStmt(this);
     }
 }
 

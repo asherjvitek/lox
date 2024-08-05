@@ -56,6 +56,11 @@ public class AstPrinter : Expr.Visitor<string>
     {
         throw new NotImplementedException();
     }
+
+    public string VisitLogicalExpr(Expr.Logical expr)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class AstRpnPrinter : Expr.Visitor<string>
@@ -111,6 +116,11 @@ public class AstRpnPrinter : Expr.Visitor<string>
     }
 
     public string? VisitTerneryExpr(Expr.Ternary expr)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string VisitLogicalExpr(Expr.Logical expr)
     {
         throw new NotImplementedException();
     }

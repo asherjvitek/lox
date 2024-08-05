@@ -42,6 +42,8 @@ public enum TokenType
     OR,
     PRINT,
     RETURN,
+    BREAK,
+    CONTINUE,
     SUPER,
     THIS,
     TRUE,

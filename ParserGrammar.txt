@@ -1,11 +1,22 @@
 program        → declaration* EOF ;
-declaration    >  varDecl | statement ;
-ifStmt         > "if" "(" expression ")" statement ( "else" statement )? ;
+declaration    > varDecl | statement ;
 varDecl        > "var" IDENTIFIER ( "=" expression )? ( "," IDENTIFIER ( "=" expression )? )* ";" ;
-statement      → ifStmt | exprStmt | printStmt | block ;
+statement      → ifStmt 
+               | whileStmt 
+               | forStmt
+               | exprStmt 
+               | printStmt 
+               | block 
+               | breakStmt
+               | continueStmt ;
+ifStmt         > "if" "(" expression ")" statement ( "else" statement )? ;
+whileStmt      > "while" "(" expression ")" statement ;
+forStmt        > "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ; 
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 block          > "{" declaration "}" ;
+breakStmt      > "break" ";" ;
+continueStmt   > "continue" ";" ;
 
 expression     → ternery ;
 ternery        > assignment ( "?" expression ":" expression )? ;
