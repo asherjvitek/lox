@@ -43,6 +43,11 @@ public class Parser
                 return stmts;
             }
 
+            if (Match(FUN))
+            {
+                return [Function("function")];
+            }
+
             return [Statement()];
         }
         catch (ParserError)
@@ -50,6 +55,37 @@ public class Parser
             Synchronize();
             return [];
         }
+    }
+
+    private Stmt Function(string kind)
+    {
+        var identifier = Consume(IDENTIFIER, $"Expect {kind} name.");
+
+        var parameters = new List<Token>();
+
+        Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (parameters.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
+            }
+            while (Match(COMMA));
+        }
+
+        Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
+
+        Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+
+        var block = Block();
+
+        return new Stmt.Function(identifier, parameters, block);
     }
 
     private Stmt VarDeclaration()
@@ -74,6 +110,8 @@ public class Parser
         if (Match(PRINT)) return PrintStatement();
         if (Match(BREAK)) return BreakStatement();
         if (Match(CONTINUE)) return ContinueStatement();
+        if (Match(RETURN)) return ReturnStatement();
+
 
         if (Match(LEFT_BRACE))
         {
@@ -177,11 +215,11 @@ public class Parser
         if (loopDepth == 0)
             throw Error(Previous(), "Expect 'break' to be inside loop");
 
-        var continueStmt = new Stmt.Break();
+        var breakStmt = new Stmt.Break();
 
         Consume(SEMICOLON, "Expect ';' after 'break'.");
 
-        return continueStmt;
+        return breakStmt;
     }
 
     private Stmt ContinueStatement()
@@ -189,11 +227,26 @@ public class Parser
         if (loopDepth == 0)
             throw Error(Previous(), "Expect 'continue' to be inside loop");
 
-        var breakStmt = new Stmt.Continue();
+        var continueStmt = new Stmt.Continue();
 
         Consume(SEMICOLON, "Expect ';' after 'continue'.");
 
-        return breakStmt;
+        return continueStmt;
+    }
+
+    private Stmt ReturnStatement()
+    {
+        var keyword = Previous();
+        Expr? value = null;
+
+        if (!Check(SEMICOLON))
+        {
+            value = Expression();
+        }
+
+        Consume(SEMICOLON, "Expect ';' after return value.");
+
+        return new Stmt.Return(keyword, value);
     }
 
     private List<Stmt> Block()
@@ -363,10 +416,50 @@ public class Parser
             return new Expr.Unary(oper, Unary());
         }
 
-        return Primary();
+        return Call();
     }
 
+    private Expr Call()
+    {
+        var expr = Primary();
 
+        while (true)
+        {
+            if (Match(LEFT_PAREN))
+            {
+                expr = FinishCall(expr);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    private Expr FinishCall(Expr callee)
+    {
+        var arguments = new List<Expr>();
+
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (arguments.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 arguments.");
+                }
+
+                arguments.Add(Expression());
+            }
+            while (Match(COMMA));
+        }
+
+        var paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+        return new Expr.Call(callee, paren, arguments);
+    }
 
     private Expr Primary()
     {

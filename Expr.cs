@@ -11,6 +11,7 @@ public abstract class Expr
         T? VisitAssignExpr(Assign expr);
         T? VisitTerneryExpr(Ternary expr);
         T? VisitLogicalExpr(Logical expr);
+        T? VisitCallExpr(Call expr);
     }
 
     public class Binary : Expr
@@ -30,7 +31,23 @@ public abstract class Expr
 
     }
 
-public class Logical : Expr
+    public class Call : Expr
+    {
+        public readonly Expr Callee;
+        public readonly Token Paren;
+        public readonly List<Expr> Arguments;
+
+        public Call (Expr callee, Token paren, List<Expr> arguments)
+        {
+            Callee = callee;
+            Paren = paren;
+            Arguments = arguments;
+        }
+        
+        public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitCallExpr(this);
+    }
+
+    public class Logical : Expr
     {
         public readonly Expr Left;
         public readonly Token Oper;
@@ -134,6 +151,6 @@ public class Logical : Expr
 }
 
 public struct UnassignedVariable
-{ 
+{
 }
 

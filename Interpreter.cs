@@ -2,7 +2,16 @@ using static TokenType;
 
 public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
 {
-    private Environment environment = new Environment(null);
+    public readonly Environment Globals;
+    private Environment environment;
+
+    public Interpreter()
+    {
+        Globals = new Environment(null);
+        environment = Globals;
+
+        Globals.Define("clock", new Clock());
+    }
 
     public void Interpret(List<Stmt> statements)
     {
@@ -24,7 +33,7 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         statement.Accept(this);
     }
 
-    private void ExecuteBlock(List<Stmt> statements, Environment environment)
+    public void ExecuteBlock(List<Stmt> statements, Environment environment)
     {
         var previous = this.environment;
 
@@ -112,6 +121,32 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         }
 
         throw new RuntimeError(expr.Oper, "Operands must be two numbers or two strings");
+    }
+
+    public object? VisitCallExpr(Expr.Call call)
+    {
+        var callee = Evaluate(call.Callee);
+
+        var arguments = new List<object?>();
+
+        foreach (var argument in call.Arguments)
+        {
+            arguments.Add(Evaluate(argument));
+        }
+
+        if (callee is not LoxCallable)
+        {
+            throw new RuntimeError(call.Paren, "Can only call functions and classes");
+        }
+
+        var function = (LoxCallable)callee;
+
+        if (arguments.Count != function.Arity())
+        {
+            throw new RuntimeError(call.Paren, $"Expected {function.Arity()} arguments but got {arguments.Count}.");
+        }
+
+        return function.Call(this, arguments);
     }
 
     public object? VisitTerneryExpr(Expr.Ternary ternary)
@@ -215,7 +250,6 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         }
     }
 
-
     public void VisitPrintStmt(Stmt.Print stmt)
     {
         Console.WriteLine(Evaluate(stmt.Expr));
@@ -317,5 +351,21 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
     public void VisitContinueStmt(Stmt.Continue stmt)
     {
         throw new Continue();
+    }
+
+    public void VisitFunctionStmt(Stmt.Function stmt)
+    {
+        environment.Define(stmt.Name.Lexeme, new LoxFunction(stmt, environment));
+    }
+
+    public void VisitReturnStmt(Stmt.Return stmt)
+    {
+        object? value = null;
+
+        if (stmt.Value != null)
+            value = Evaluate(stmt.Value);
+
+
+        throw new Return(value);
     }
 }

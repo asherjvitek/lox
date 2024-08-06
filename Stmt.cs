@@ -11,7 +11,9 @@ public abstract class Stmt
         void VisitWhileStmt(While stmt);
         void VisitBreakStmt(Break stmt);
         void VisitContinueStmt(Continue stmt);
+        void VisitReturnStmt(Return stmt);
         void VisitForStmt(For stmt);
+        void VisitFunctionStmt(Function stmt);
     }
 
     public class Expression : Stmt
@@ -24,6 +26,23 @@ public abstract class Stmt
         }
 
         public override void Accept(Visitor visitor) => visitor.VisitExpressionStmt(this);
+
+    }
+
+    public class Function : Stmt
+    {
+        public readonly Token Name;
+        public readonly List<Token> Params;
+        public readonly List<Stmt> Body;
+
+        public Function(Token name, List<Token> parameters, List<Stmt> body)
+        {
+            Name = name;
+            Params = parameters;
+            Body = body;
+        }
+
+        public override void Accept(Visitor visitor) => visitor.VisitFunctionStmt(this);
 
     }
 
@@ -127,6 +146,20 @@ public abstract class Stmt
     public class Continue : Stmt
     {
         public override void Accept(Visitor visitor) => visitor.VisitContinueStmt(this);
+    }
+
+    public class Return : Stmt
+    {
+        public readonly Token Keyword;
+        public readonly Expr? Value;
+
+        public Return(Token keyword, Expr? value)
+        {
+            Keyword = keyword;
+            Value = value;
+        }
+
+        public override void Accept(Visitor visitor) => visitor.VisitReturnStmt(this);
     }
 }
 

@@ -1,5 +1,8 @@
 program        → declaration* EOF ;
-declaration    > varDecl | statement ;
+declaration    > funDecl | varDecl | statement ;
+funDecl        > "fun" function ;
+function       > IDENTIFIER "(" parameters? ")" block ;
+parameters     > IDENTIFIER ( "," IDENTIFIER )* ;
 varDecl        > "var" IDENTIFIER ( "=" expression )? ( "," IDENTIFIER ( "=" expression )? )* ";" ;
 statement      → ifStmt 
                | whileStmt 
@@ -8,7 +11,8 @@ statement      → ifStmt
                | printStmt 
                | block 
                | breakStmt
-               | continueStmt ;
+               | continueStmt 
+               | returnStmt;
 ifStmt         > "if" "(" expression ")" statement ( "else" statement )? ;
 whileStmt      > "while" "(" expression ")" statement ;
 forStmt        > "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ; 
@@ -17,6 +21,7 @@ printStmt      → "print" expression ";" ;
 block          > "{" declaration "}" ;
 breakStmt      > "break" ";" ;
 continueStmt   > "continue" ";" ;
+returnStmt     > "return" expression? ";" ;
 
 expression     → ternery ;
 ternery        > assignment ( "?" expression ":" expression )? ;
@@ -27,8 +32,9 @@ equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
-unary          → ( "!" | "-" ) unary
-               | primary ;
+unary          → ( "!" | "-" ) unary | call
+call           > primary ( "(" arguments? ")" )* ;
+arguments      > expression ( "," expression )* ;
 primary        → NUMBER | STRING 
                | "true" | "false" | "nil"
                | "(" expression ")"
