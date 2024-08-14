@@ -215,6 +215,11 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         return value;
     }
 
+    public object? VisitLambdaExpr(Expr.Lambda expr)
+    {
+        return new LoxLambda(expr, environment);
+    }
+
     public object? VisitLogicalExpr(Expr.Logical expr)
     {
         var left = Evaluate(expr.Left);

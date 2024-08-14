@@ -303,7 +303,7 @@ public class Parser
 
     private Expr Assignment()
     {
-        var expr = Or();
+        var expr = Lambda();
 
         if (Match(EQUAL))
         {
@@ -319,6 +319,41 @@ public class Parser
         }
 
         return expr;
+    }
+
+    private Expr Lambda()
+    {
+        if (Match(FUN))
+        {
+            var kind = "Anaonamous Function";
+            var parameters = new List<Token>();
+
+            Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+
+            if (!Check(RIGHT_PAREN))
+            {
+                do
+                {
+                    if (parameters.Count >= 255)
+                    {
+                        Error(Peek(), "Can't have more than 255 parameters.");
+                    }
+
+                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
+                }
+                while (Match(COMMA));
+            }
+
+            Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
+
+            Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+
+            var block = Block();
+
+            return new Expr.Lambda(parameters, block);
+        }
+
+        return Or();
     }
 
     private Expr Or()

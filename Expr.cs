@@ -12,6 +12,7 @@ public abstract class Expr
         T? VisitTerneryExpr(Ternary expr);
         T? VisitLogicalExpr(Logical expr);
         T? VisitCallExpr(Call expr);
+        T? VisitLambdaExpr(Lambda expr);
     }
 
     public class Binary : Expr
@@ -29,6 +30,21 @@ public abstract class Expr
 
         public override T Accept<T>(Visitor<T> visitor) => visitor.VisitBinaryExpr(this);
 
+    }
+
+    public class Lambda : Expr
+    {
+        public readonly List<Token> Parameters;
+        public readonly List<Stmt> Body;
+
+
+        public Lambda(List<Token> parameters, List<Stmt> body)
+        {
+            Parameters = parameters;
+            Body = body;
+        }
+
+        public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitLambdaExpr(this);
     }
 
     public class Call : Expr
