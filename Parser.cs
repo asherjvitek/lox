@@ -61,9 +61,22 @@ public class Parser
     {
         var identifier = Consume(IDENTIFIER, $"Expect {kind} name.");
 
-        var parameters = new List<Token>();
-
         Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+
+        var parameters = Parameters();
+
+        Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
+
+        Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+
+        var block = Block();
+
+        return new Stmt.Function(identifier, parameters, block);
+    }
+
+    private List<Token> Parameters()
+    {
+        var parameters = new List<Token>();
 
         if (!Check(RIGHT_PAREN))
         {
@@ -79,13 +92,7 @@ public class Parser
             while (Match(COMMA));
         }
 
-        Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
-
-        Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
-
-        var block = Block();
-
-        return new Stmt.Function(identifier, parameters, block);
+        return parameters;
     }
 
     private Stmt VarDeclaration()
@@ -325,32 +332,15 @@ public class Parser
     {
         if (Match(FUN))
         {
-            var kind = "Anaonamous Function";
-            var parameters = new List<Token>();
+            Consume(LEFT_PAREN, $"Expect '(' after 'fun' name.");
 
-            Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
-
-            if (!Check(RIGHT_PAREN))
-            {
-                do
-                {
-                    if (parameters.Count >= 255)
-                    {
-                        Error(Peek(), "Can't have more than 255 parameters.");
-                    }
-
-                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
-                }
-                while (Match(COMMA));
-            }
+            var parameters = Parameters();
 
             Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
 
-            Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+            Consume(LEFT_BRACE, $"Expect '{{' before 'fun' body.");
 
-            var block = Block();
-
-            return new Expr.Lambda(parameters, block);
+            return new Expr.Lambda(parameters, Block());
         }
 
         return Or();
