@@ -1,7 +1,14 @@
-var a = 1;
+var a = "test";
+
 
 {
-    var a = a + 2;
-    print a;
-}
 
+    var test = fun ()
+    {
+        print a;
+    };
+
+    test();
+    var a = "something";
+    test();
+}

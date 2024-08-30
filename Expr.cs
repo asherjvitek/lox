@@ -1,6 +1,8 @@
 public abstract class Expr
 {
     public abstract T? Accept<T>(Visitor<T> visitor);
+    public abstract void Accept(Visitor visitor);
+
     public interface Visitor<T>
     {
         T VisitBinaryExpr(Binary expr);
@@ -13,6 +15,20 @@ public abstract class Expr
         T? VisitLogicalExpr(Logical expr);
         T? VisitCallExpr(Call expr);
         T? VisitLambdaExpr(Lambda expr);
+    }
+
+    public interface Visitor
+    {
+        void VisitBinaryExpr(Binary expr);
+        void VisitGroupingExpr(Grouping expr);
+        void VisitLiteralExpr(Literal expr);
+        void VisitUnaryExpr(Unary expr);
+        void VisitVariableExpr(Variable expr);
+        void VisitAssignExpr(Assign expr);
+        void VisitTerneryExpr(Ternary expr);
+        void VisitLogicalExpr(Logical expr);
+        void VisitCallExpr(Call expr);
+        void VisitLambdaExpr(Lambda expr);
     }
 
     public class Binary : Expr
@@ -29,6 +45,7 @@ public abstract class Expr
         }
 
         public override T Accept<T>(Visitor<T> visitor) => visitor.VisitBinaryExpr(this);
+        public override void Accept(Visitor visitor) => visitor.VisitBinaryExpr(this);
 
     }
 
@@ -45,6 +62,7 @@ public abstract class Expr
         }
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitLambdaExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitLambdaExpr(this);
     }
 
     public class Call : Expr
@@ -53,14 +71,15 @@ public abstract class Expr
         public readonly Token Paren;
         public readonly List<Expr> Arguments;
 
-        public Call (Expr callee, Token paren, List<Expr> arguments)
+        public Call(Expr callee, Token paren, List<Expr> arguments)
         {
             Callee = callee;
             Paren = paren;
             Arguments = arguments;
         }
-        
+
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitCallExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitCallExpr(this);
     }
 
     public class Logical : Expr
@@ -77,6 +96,7 @@ public abstract class Expr
         }
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitLogicalExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitLogicalExpr(this);
 
     }
 
@@ -94,6 +114,7 @@ public abstract class Expr
         }
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitTerneryExpr(this);
+        public override void Accept(Visitor visitor) => visitor.VisitTerneryExpr(this);
     }
 
     public class Grouping : Expr
@@ -106,6 +127,7 @@ public abstract class Expr
         }
 
         public override T Accept<T>(Visitor<T> visitor) => visitor.VisitGroupingExpr(this);
+        public override void Accept(Visitor visitor) => visitor.VisitGroupingExpr(this);
 
     }
 
@@ -119,6 +141,7 @@ public abstract class Expr
         }
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitLiteralExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitLiteralExpr(this);
 
     }
 
@@ -134,6 +157,7 @@ public abstract class Expr
         }
 
         public override T Accept<T>(Visitor<T> visitor) => visitor.VisitUnaryExpr(this);
+        public override void Accept(Visitor visitor) => visitor.VisitUnaryExpr(this);
 
     }
 
@@ -147,6 +171,7 @@ public abstract class Expr
         }
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitVariableExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitVariableExpr(this);
 
     }
 
@@ -162,6 +187,7 @@ public abstract class Expr
         }
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitAssignExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitAssignExpr(this);
 
     }
 }

@@ -4,11 +4,13 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
 {
     public readonly Environment Globals;
     private Environment environment;
+    private readonly Dictionary<Expr, int> locals;
 
     public Interpreter()
     {
-        Globals = new Environment(null);
+        Globals = new Environment();
         environment = Globals;
+        locals = new Dictionary<Expr, int>();
 
         Globals.Define("clock", new Clock());
     }
@@ -26,6 +28,11 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         {
             Lox.RunTimeError(error);
         }
+    }
+
+    public void Resolve(Expr expr, int depth)
+    {
+        locals[expr] = depth;
     }
 
     private void Execute(Stmt statement)
@@ -203,14 +210,36 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
-        return environment.Get(expr.Name);
+        return LookUpVariable(expr.Name, expr);
+    }
+
+    private object? LookUpVariable(Token name, Expr.Variable expr)
+    {
+        if (locals.TryGetValue(expr, out var distance))
+        {
+            // Console.WriteLine($"Lookup: {name.Lexeme}, {distance}");
+            return environment.GetAt(distance, name.Lexeme);
+        }
+
+        // Console.WriteLine($"Lookup: {name.Lexeme}");
+
+        return Globals.Get(name);
     }
 
     public object? VisitAssignExpr(Expr.Assign expr)
     {
         var value = Evaluate(expr.Value);
 
-        environment.Assign(expr.Name, value);
+        if (locals.TryGetValue(expr, out var distance))
+        {
+            environment.AssignAt(distance, expr.Name, value);
+        }
+        else
+        {
+            Globals.Assign(expr.Name, value);
+        }
+
+        // Console.WriteLine($"Assign: {expr.Name.Lexeme}");
 
         return value;
     }

@@ -17,7 +17,7 @@ public static class Lox
 
         if (hadRuntimeError)
             System.Environment.Exit(70);
-        
+
     }
 
     public static void RunPrompt()
@@ -49,7 +49,7 @@ public static class Lox
         {
             Report(token.Line, " at end", message);
         }
-        else 
+        else
         {
             Report(token.Line, $" at '{token.Lexeme}'", message);
         }
@@ -68,6 +68,12 @@ public static class Lox
 
         var parser = new Parser(tokens);
         var statements = parser.Parse();
+
+        if (hadError)
+            return;
+
+        var resolver = new Resolver(interpreter);
+        resolver.Resolve(statements);
 
         if (hadError)
             return;
