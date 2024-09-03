@@ -1,0 +1,11 @@
+class Test {
+    init() {
+        this.value = "Value";
+        print "here";
+    }
+}
+
+var t = Test();
+
+print t.value;
+

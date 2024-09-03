@@ -3,11 +3,20 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
     private readonly Interpreter interpreter;
     private Stack<Dictionary<string, bool>> scopes = new Stack<Dictionary<string, bool>>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     private enum FunctionType
     {
         NONE,
         FUNCTION,
+        INITIALIZER,
+        METHOD,
+    }
+
+    private enum ClassType
+    {
+        NONE,
+        CLASS,
     }
 
     public Resolver(Interpreter interpreter)
@@ -67,6 +76,29 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         }
     }
 
+    public void VisitGetExpr(Expr.Get expr)
+    {
+        Resolve(expr.Object);
+    }
+
+    public void VisitSetExpr(Expr.Set expr)
+    {
+        Resolve(expr.Value);
+        Resolve(expr.Object);
+    }
+
+    public void VisitThisExpr(Expr.This expr)
+    {
+        if (currentClass == ClassType.NONE)
+        {
+            Lox.Error(expr.Keyword, "Can't user 'this' outside of a class.");
+
+            return;
+        }
+
+        ResolveLocal(expr, expr.Keyword);
+    }
+
     public void VisitContinueStmt(Stmt.Continue stmt)
     {
 
@@ -87,6 +119,32 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
 
         if (stmt.Incrementer != null)
             Resolve(stmt.Incrementer);
+    }
+
+    public void VisitClassStmt(Stmt.Class stmt)
+    {
+        var enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
+        Declare(stmt.Name);
+        Define(stmt.Name);
+
+        BeginScope();
+        scopes.Peek()["this"] = true;
+
+        foreach (var method in stmt.Methods)
+        {
+            var declaration = FunctionType.METHOD;
+
+            if (method.Name.Lexeme == "init")
+                declaration = FunctionType.INITIALIZER;
+
+            ResolveFunction(method, declaration);
+        }
+
+        EndScope();
+
+        currentClass = ClassType.NONE;
     }
 
     public void VisitFunctionStmt(Stmt.Function stmt)
@@ -147,7 +205,14 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
             Lox.Error(stmt.Keyword, "Can't reutnr from top-level code.");
 
         if (stmt.Value != null)
+        {
+            if (currentFunction == FunctionType.INITIALIZER)
+            {
+                Lox.Error(stmt.Keyword, "Can't return a value from an initializer.");
+            }
+
             Resolve(stmt.Value);
+        }
     }
 
     public void VisitTerneryExpr(Expr.Ternary expr)

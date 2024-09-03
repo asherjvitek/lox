@@ -14,6 +14,7 @@ public abstract class Stmt
         void VisitReturnStmt(Return stmt);
         void VisitForStmt(For stmt);
         void VisitFunctionStmt(Function stmt);
+        void VisitClassStmt(Class stmt);
     }
 
     public class Expression : Stmt
@@ -27,6 +28,20 @@ public abstract class Stmt
 
         public override void Accept(Visitor visitor) => visitor.VisitExpressionStmt(this);
 
+    }
+
+    public class Class : Stmt
+    {
+        public readonly Token Name;
+        public readonly List<Stmt.Function> Methods;
+
+        public Class(Token name, List<Stmt.Function> methods)
+        {
+            Name = name;
+            Methods = methods;
+        }
+
+        public override void Accept(Visitor visitor) => visitor.VisitClassStmt(this);
     }
 
     public class Function : Stmt

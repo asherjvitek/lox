@@ -14,6 +14,9 @@ public abstract class Expr
         T? VisitTerneryExpr(Ternary expr);
         T? VisitLogicalExpr(Logical expr);
         T? VisitCallExpr(Call expr);
+        T? VisitGetExpr(Get expr);
+        T? VisitSetExpr(Set expr);
+        T? VisitThisExpr(This expr);
         T? VisitLambdaExpr(Lambda expr);
     }
 
@@ -28,6 +31,9 @@ public abstract class Expr
         void VisitTerneryExpr(Ternary expr);
         void VisitLogicalExpr(Logical expr);
         void VisitCallExpr(Call expr);
+        void VisitGetExpr(Get expr);
+        void VisitSetExpr(Set expr);
+        void VisitThisExpr(This expr);
         void VisitLambdaExpr(Lambda expr);
     }
 
@@ -80,6 +86,52 @@ public abstract class Expr
 
         public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitCallExpr(this);
         public override void Accept(Visitor visitor)  => visitor.VisitCallExpr(this);
+    }
+
+    public class Get : Expr
+    {
+        public readonly Expr Object;
+        public readonly Token Name;
+
+        public Get(Expr obj, Token name)
+        {
+            Object = obj;
+            Name = name;
+        }
+
+        public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitGetExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitGetExpr(this);
+    }
+
+    public class Set : Expr
+    {
+        public readonly Expr Object;
+        public readonly Token Name;
+        public readonly Expr Value;
+
+        public Set(Expr obj, Token name, Expr value)
+        {
+            Object = obj;
+            Name = name;
+            Value = value;
+        }
+
+        public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitSetExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitSetExpr(this);
+    }
+
+    public class This : Expr
+    {
+        public readonly Token Keyword;
+
+        public This(Token keyword)
+        {
+            Keyword = keyword;
+        }
+
+
+        public override T? Accept<T>(Visitor<T> visitor) where T : default => visitor.VisitThisExpr(this);
+        public override void Accept(Visitor visitor)  => visitor.VisitThisExpr(this);
     }
 
     public class Logical : Expr

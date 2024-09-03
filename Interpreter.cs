@@ -156,6 +156,38 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         return function.Call(this, arguments);
     }
 
+    public object? VisitGetExpr(Expr.Get expr)
+    {
+        var obj = Evaluate(expr.Object);
+
+        if (obj is LoxInstance instance)
+        {
+            return instance.Get(expr.Name);
+        }
+
+        throw new RuntimeError(expr.Name, "Only instances have properties.");
+    }
+
+    public object? VisitSetExpr(Expr.Set expr)
+    {
+        var obj = Evaluate(expr.Object);
+
+        if (obj is not LoxInstance instance)
+        {
+            throw new RuntimeError(expr.Name, "Only instances have fields.");
+        }
+
+        var value = Evaluate(expr.Value);
+        instance.Set(expr.Name, value);
+
+        return value;
+    }
+
+    public object? VisitThisExpr(Expr.This expr)
+    {
+        return LookUpVariable(expr.Keyword, expr);
+    }
+
     public object? VisitTerneryExpr(Expr.Ternary ternary)
     {
         if (IsTruthy(Evaluate(ternary.Condition)))
@@ -213,15 +245,12 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         return LookUpVariable(expr.Name, expr);
     }
 
-    private object? LookUpVariable(Token name, Expr.Variable expr)
+    private object? LookUpVariable(Token name, Expr expr)
     {
         if (locals.TryGetValue(expr, out var distance))
         {
-            // Console.WriteLine($"Lookup: {name.Lexeme}, {distance}");
             return environment.GetAt(distance, name.Lexeme);
         }
-
-        // Console.WriteLine($"Lookup: {name.Lexeme}");
 
         return Globals.Get(name);
     }
@@ -238,8 +267,6 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         {
             Globals.Assign(expr.Name, value);
         }
-
-        // Console.WriteLine($"Assign: {expr.Name.Lexeme}");
 
         return value;
     }
@@ -387,9 +414,25 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         throw new Continue();
     }
 
+    public void VisitClassStmt(Stmt.Class stmt)
+    {
+        environment.Define(stmt.Name.Lexeme, null);
+
+        var methods = new Dictionary<string, LoxFunction>();
+        foreach (var method in stmt.Methods)
+        {
+            var function = new LoxFunction(method, environment, method.Name.Lexeme == "init");
+            methods[method.Name.Lexeme] = function;
+        }
+
+        var loxClass = new LoxClass(stmt.Name.Lexeme, methods);
+
+        environment.Assign(stmt.Name, loxClass);
+    }
+
     public void VisitFunctionStmt(Stmt.Function stmt)
     {
-        environment.Define(stmt.Name.Lexeme, new LoxFunction(stmt, environment));
+        environment.Define(stmt.Name.Lexeme, new LoxFunction(stmt, environment, false));
     }
 
     public void VisitReturnStmt(Stmt.Return stmt)

@@ -2,11 +2,13 @@ public class LoxFunction : LoxCallable
 {
     private readonly Stmt.Function declaration;
     private readonly Environment closure;
+    private readonly bool isInitializer = false;
 
-    public LoxFunction(Stmt.Function declaration, Environment closure)
+    public LoxFunction(Stmt.Function declaration, Environment closure, bool isInitializer)
     {
         this.declaration = declaration;
         this.closure = closure;
+        this.isInitializer = isInitializer;
     }
 
     public int Arity()
@@ -29,10 +31,27 @@ public class LoxFunction : LoxCallable
         }
         catch (Return exp)
         {
+            if (isInitializer)
+                return closure.GetAt(0, "this");
+
             return exp.Value;
         }
 
+        if (isInitializer)
+        {
+            return closure.GetAt(0, "this");
+        }
+
         return null;
+    }
+
+    public LoxFunction Bind(LoxInstance instance)
+    {
+        var environment = new Environment(closure);
+
+        environment.Define("this", instance);
+
+        return new LoxFunction(declaration, environment, isInitializer);
     }
 
     public override string ToString()
