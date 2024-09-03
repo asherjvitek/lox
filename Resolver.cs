@@ -15,6 +15,14 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         this.interpreter = interpreter;
     }
 
+    public void Resolve(List<Stmt> stmts)
+    {
+        foreach (var stmt in stmts)
+        {
+            Resolve(stmt);
+        }
+    }
+
     public void VisitVariableExpr(Expr.Variable expr)
     {
         if (scopes.Any() && scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool value) && value == false)
@@ -170,14 +178,6 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
     {
         Resolve(stmt.Condition);
         Resolve(stmt.Body);
-    }
-
-    public void Resolve(List<Stmt> stmts)
-    {
-        foreach (var stmt in stmts)
-        {
-            Resolve(stmt);
-        }
     }
 
     private void Resolve(Stmt stmt)
