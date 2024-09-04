@@ -2,11 +2,13 @@
 public class LoxClass : LoxCallable
 {
     public readonly string Name;
+    public readonly LoxClass? Superclass;
     public readonly Dictionary<string, LoxFunction> Methods;
 
-    public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+    public LoxClass(string name, LoxClass? superclass, Dictionary<string, LoxFunction> methods)
     {
         Name = name;
+        Superclass = superclass;
         Methods = methods;
     }
 
@@ -36,6 +38,9 @@ public class LoxClass : LoxCallable
     {
         if (Methods.TryGetValue(name, out var method))
             return method;
+
+        if (Superclass != null)
+            return Superclass.FindMethod(name);
 
         return null;
     }

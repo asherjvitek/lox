@@ -1,11 +1,21 @@
 class Test {
     init() {
-        this.value = "Value";
-        print "here";
+        print "Init Test";
+        this.message = "Print me!";
+    }
+
+    getMessage() {
+        return this.message;
     }
 }
 
-var t = Test();
+class Child < Test {
+    do() {
+        print super.getMessage();
+    }
+}
 
-print t.value;
+var t = Child();
+
+t.do();
 

@@ -87,6 +87,11 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         Resolve(expr.Object);
     }
 
+    public void VisitSuperExpr(Expr.Super expr)
+    {
+        ResolveLocal(expr, expr.Keyword);
+    }
+
     public void VisitThisExpr(Expr.This expr)
     {
         if (currentClass == ClassType.NONE)
@@ -129,6 +134,18 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         Declare(stmt.Name);
         Define(stmt.Name);
 
+        if (stmt.Superclass != null && stmt.Name.Lexeme.Equals(stmt.Superclass.Name.Lexeme))
+            Lox.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
+
+        if (stmt.Superclass != null)
+            Resolve(stmt.Superclass);
+
+        if (stmt.Superclass != null)
+        {
+            BeginScope();
+            scopes.Peek()["super"] = true;
+        }
+
         BeginScope();
         scopes.Peek()["this"] = true;
 
@@ -143,6 +160,11 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         }
 
         EndScope();
+
+        if (stmt.Superclass != null)
+        {
+            EndScope();
+        }
 
         currentClass = ClassType.NONE;
     }
@@ -292,7 +314,6 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         {
             if (scopes.ElementAt(i).ContainsKey(name.Lexeme))
             {
-                // Console.WriteLine($"expr: {name.Lexeme}; scopes: {scopes.Count}; distance: {scopes.Count - 1 - i}, {i}");
                 interpreter.Resolve(expr, i);
                 return;
             }

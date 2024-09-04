@@ -33,11 +33,13 @@ public abstract class Stmt
     public class Class : Stmt
     {
         public readonly Token Name;
+        public Expr.Variable? Superclass;
         public readonly List<Stmt.Function> Methods;
 
-        public Class(Token name, List<Stmt.Function> methods)
+        public Class(Token name, Expr.Variable? superclass, List<Stmt.Function> methods)
         {
             Name = name;
+            Superclass = superclass;
             Methods = methods;
         }
 
