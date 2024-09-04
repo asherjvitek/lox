@@ -1,11 +1,15 @@
 class Test {
-    init() {
-        this.value = "Value";
-        print "here";
+    class Static(n) {
+        print n * n;
+    }
+
+    NotStatic(n) {
+        print n * n;
     }
 }
 
 var t = Test();
 
-print t.value;
+//t.NotStatic(3);
+Test.Static(3);
 

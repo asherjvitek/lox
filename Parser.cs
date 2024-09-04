@@ -69,15 +69,23 @@ public class Parser
         Consume(LEFT_BRACE, "Expect { before class body.");
 
         var methods = new List<Stmt.Function>();
+        var staticMethods = new List<Stmt.Function>();
 
         while (!Check(RIGHT_BRACE) && !IsAtEnd())
         {
-            methods.Add((Function("method") as Stmt.Function)!);
+            if (Match(CLASS))
+            {
+                staticMethods.Add((Function("method") as Stmt.Function)!);
+            }
+            else
+            {
+                methods.Add((Function("method") as Stmt.Function)!);
+            }
         }
 
         Consume(RIGHT_BRACE, "Expect } after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, methods, staticMethods);
 
     }
 

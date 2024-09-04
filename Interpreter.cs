@@ -164,6 +164,11 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
         {
             return instance.Get(expr.Name);
         }
+        
+        if (obj is LoxClass loxClass)
+        {
+            return loxClass.Get(expr.Name);
+        }
 
         throw new RuntimeError(expr.Name, "Only instances have properties.");
     }
@@ -425,7 +430,14 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor
             methods[method.Name.Lexeme] = function;
         }
 
-        var loxClass = new LoxClass(stmt.Name.Lexeme, methods);
+        var staticMethods = new Dictionary<string, LoxFunction>();
+        foreach (var method in stmt.StaticMethods)
+        {
+            var function = new LoxFunction(method, environment, false);
+            staticMethods[method.Name.Lexeme] = function;
+        }
+
+        var loxClass = new LoxClass(stmt.Name.Lexeme, methods, staticMethods);
 
         environment.Assign(stmt.Name, loxClass);
     }

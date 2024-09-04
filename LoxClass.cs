@@ -1,13 +1,14 @@
-
 public class LoxClass : LoxCallable
 {
     public readonly string Name;
     public readonly Dictionary<string, LoxFunction> Methods;
+    public readonly Dictionary<string, LoxFunction> StaticMethods;
 
-    public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+    public LoxClass(string name, Dictionary<string, LoxFunction> methods, Dictionary<string, LoxFunction> staticMethods)
     {
         Name = name;
         Methods = methods;
+        StaticMethods = staticMethods;
     }
 
     public int Arity()
@@ -38,6 +39,14 @@ public class LoxClass : LoxCallable
             return method;
 
         return null;
+    }
+
+    public object? Get(Token name)
+    {
+        if (StaticMethods.TryGetValue(name.Lexeme, out var method))
+            return method;
+
+        throw new RuntimeError(name, $"Undefined static method '{name.Lexeme}'.");
     }
 
     public override string ToString()

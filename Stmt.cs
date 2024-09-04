@@ -34,11 +34,13 @@ public abstract class Stmt
     {
         public readonly Token Name;
         public readonly List<Stmt.Function> Methods;
+        public readonly List<Stmt.Function> StaticMethods;
 
-        public Class(Token name, List<Stmt.Function> methods)
+        public Class(Token name, List<Stmt.Function> methods, List<Stmt.Function> staticMethods)
         {
             Name = name;
             Methods = methods;
+            StaticMethods = staticMethods;
         }
 
         public override void Accept(Visitor visitor) => visitor.VisitClassStmt(this);

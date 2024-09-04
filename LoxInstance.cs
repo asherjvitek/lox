@@ -1,9 +1,8 @@
-
 public class LoxInstance
 {
     private static Dictionary<string, object?> fields = new Dictionary<string, object?>();
 
-    public readonly LoxClass LoxClass;
+    public LoxClass LoxClass;
 
     public LoxInstance(LoxClass loxClass)
     {
@@ -33,5 +32,4 @@ public class LoxInstance
     {
         return $"{LoxClass.Name} instance";
     }
-
 }

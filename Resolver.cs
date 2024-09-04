@@ -142,6 +142,13 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
             ResolveFunction(method, declaration);
         }
 
+        foreach (var method in stmt.StaticMethods)
+        {
+            var declaration = FunctionType.METHOD;
+
+            ResolveFunction(method, declaration);
+        }
+
         EndScope();
 
         currentClass = ClassType.NONE;
