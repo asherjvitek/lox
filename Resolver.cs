@@ -187,7 +187,7 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
         Declare(stmt.Name);
         Define(stmt.Name);
 
-        ResolveFunction(stmt, FunctionType.NONE);
+        ResolveFunction(stmt, FunctionType.FUNCTION);
     }
 
     public void VisitGroupingExpr(Expr.Grouping expr)
@@ -237,7 +237,7 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
     public void VisitReturnStmt(Stmt.Return stmt)
     {
         if (currentFunction == FunctionType.NONE)
-            Lox.Error(stmt.Keyword, "Can't reutnr from top-level code.");
+            Lox.Error(stmt.Keyword, "Can't return from top-level code.");
 
         if (stmt.Value != null)
         {
