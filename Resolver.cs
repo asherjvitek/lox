@@ -17,6 +17,7 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
     {
         NONE,
         CLASS,
+        SUBCLASS,
     }
 
     public Resolver(Interpreter interpreter)
@@ -89,6 +90,15 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
 
     public void VisitSuperExpr(Expr.Super expr)
     {
+        if (currentClass == ClassType.NONE)
+        {
+            Lox.Error(expr.Keyword, "Can't user 'super' outside of a class.");
+        }
+        else if (currentClass != ClassType.SUBCLASS)
+        {
+            Lox.Error(expr.Keyword, "Can't user 'super' without a superclass.");
+        }
+
         ResolveLocal(expr, expr.Keyword);
     }
 
@@ -138,7 +148,10 @@ public class Resolver : Expr.Visitor, Stmt.Visitor
             Lox.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
 
         if (stmt.Superclass != null)
+        {
+            currentClass = ClassType.SUBCLASS;
             Resolve(stmt.Superclass);
+        }
 
         if (stmt.Superclass != null)
         {
